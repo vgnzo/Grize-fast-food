@@ -42,11 +42,10 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
     http
         .cors(cors -> cors.configurationSource(request -> {
             var config = new org.springframework.web.cors.CorsConfiguration();
-
-            config.addAllowedOriginPattern("*");
-            config.addAllowedMethod("*");
-            config.addAllowedHeader("*");
-            config.setAllowCredentials(true);
+config.addAllowedOriginPattern("*");
+config.addAllowedMethod("*");
+config.addAllowedHeader("*");
+config.setAllowCredentials(false);
             return config;
         }))
         .csrf(csrf -> csrf.disable())
