@@ -3,9 +3,9 @@ spring:
     name: backend
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/delivery_app
-    username: postgres
-    password: Relogio?123
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/delivery_app}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:Relogio?123}
     driver-class-name: org.postgresql.Driver
 
   jpa:
