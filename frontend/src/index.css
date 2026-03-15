@@ -1,0 +1,6 @@
+@import "tailwindcss";  /*import do tailwind*/
+
+body {
+  background: #0a0a0f;
+  margin: 0;
+}
