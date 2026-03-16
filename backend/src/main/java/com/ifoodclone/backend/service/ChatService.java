@@ -43,12 +43,14 @@ public class ChatService {
 
         HttpEntity<Map<String, String>> request = new HttpEntity<>(body, headers);
 
-        ResponseEntity<String> response = restTemplate.postForEntity(n8nConfig.getWebhookUrl(), request, String.class);
+      ResponseEntity<String> response = restTemplate.postForEntity(n8nConfig.getWebhookUrl(), request, String.class);
 
-        if (response.getBody() != null && !response.getBody().isEmpty()) {
-            return response.getBody();
-        }
+System.out.println("N8N Response Status: " + response.getStatusCode());
+System.out.println("N8N Response Body: " + response.getBody());
 
+if (response.getBody() != null && !response.getBody().isEmpty()) {
+    return response.getBody();
+}
         return "Desculpe, não consegui processar sua mensagem!";
     }
 }
