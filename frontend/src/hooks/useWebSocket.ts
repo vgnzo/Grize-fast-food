@@ -14,7 +14,7 @@ export function useWebSocket(usuarioId: number | null, onNotificacao: (n: Notifi
         if (!usuarioId) return;
 
         const client = new Client({
-brokerURL: 'ws://localhost:8080/ws',            onConnect: () => {
+brokerURL: 'wss://grize-fast-food-production.up.railway.app/ws',           onConnect: () => {
                 client.subscribe(`/topic/pedidos/${usuarioId}`, (message) => {
                     const notificacao: Notificacao = JSON.parse(message.body);
                     onNotificacao(notificacao);
