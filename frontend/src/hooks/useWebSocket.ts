@@ -14,15 +14,18 @@ export function useWebSocket(usuarioId: number | null, onNotificacao: (n: Notifi
     useEffect(() => {
         if (!usuarioId) return;
 
-        const client = new Client({
-            webSocketFactory: () => new SockJS('https://grize-fast-food-production.up.railway.app/ws'), // ← troca brokerURL por isso
-            onConnect: () => {
-                client.subscribe(`/topic/pedidos/${usuarioId}`, (message) => {
-                    const notificacao: Notificacao = JSON.parse(message.body);
-                    onNotificacao(notificacao);
-                });
-            },
+      const client = new Client({
+    webSocketFactory: () => new SockJS('https://grize-fast-food-production.up.railway.app/ws'),
+    reconnectDelay: 5000, // ← reconecta automaticamente
+    heartbeatIncoming: 4000,
+    heartbeatOutgoing: 4000,
+    onConnect: () => {
+        client.subscribe(`/topic/pedidos/${usuarioId}`, (message) => {
+            const notificacao: Notificacao = JSON.parse(message.body);
+            onNotificacao(notificacao);
         });
+    },
+});
 
         client.activate();
         clientRef.current = client;
