@@ -10,35 +10,46 @@ import { jwtDecode } from "jwt-decode";
 import PerfilPage from './pages/PerfilPage';
 import MeusPedidosPage from './pages/MeusPedidosPage';
 
-//componente q protege rotas
 function RotaProtegida({ children, roleNecessario }: { children: React.ReactNode, roleNecessario: string }) {
   const token = localStorage.getItem('token');
-  if (!token) return <Navigate to="/login" />
+  if (!token) return <Navigate to="/login" />;
 
   let roles: string[] = [];
   try {
-    const decoded = jwtDecode<{roles: string[]}> (token);
+    const decoded = jwtDecode<{ roles: string[] }>(token);
     roles = decoded.roles ?? [];
-  }catch {
+  } catch {
     return <Navigate to="/login" />;
   }
 
-      if (!roles.includes(roleNecessario)) return <Navigate to="/" />;
-  return <>{children}</>
+  if (!roles.includes(roleNecessario)) return <Navigate to="/home" />;
+  return <>{children}</>;
+}
+
+function RotaPublica({ children }: { children: React.ReactNode }) {
+  const token = localStorage.getItem('token');
+  if (token) {
+    try {
+      const decoded = jwtDecode<{ roles: string[] }>(token);
+      const role = decoded.roles?.[0];
+      if (role === 'ROLE_RESTAURANTE') return <Navigate to="/painel" />;
+      return <Navigate to="/home" />;
+    } catch {
+      localStorage.removeItem('token');
+    }
   }
-function App(){
+  return <>{children}</>;
+}
+
+function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/meus-pedidos" element={
-  <RotaProtegida roleNecessario="ROLE_CLIENTE">
-    <MeusPedidosPage />
-  </RotaProtegida>
-} />
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/cadastro" element={<Cadastro />} />
+          <Route path="/" element={<Navigate to="/login" />} />
+          <Route path="/login" element={<RotaPublica><Login /></RotaPublica>} />
+          <Route path="/cadastro" element={<RotaPublica><Cadastro /></RotaPublica>} />
+          <Route path="/home" element={<Home />} />
           <Route path="/painel" element={
             <RotaProtegida roleNecessario="ROLE_RESTAURANTE">
               <PainelRestaurante />
@@ -46,10 +57,15 @@ function App(){
           } />
           <Route path="/restaurante/:id" element={<RestaurantePage />} />
           <Route path="/perfil" element={
-  <RotaProtegida roleNecessario="ROLE_CLIENTE">
-    <PerfilPage />
-  </RotaProtegida>
-              } />
+            <RotaProtegida roleNecessario="ROLE_CLIENTE">
+              <PerfilPage />
+            </RotaProtegida>
+          } />
+          <Route path="/meus-pedidos" element={
+            <RotaProtegida roleNecessario="ROLE_CLIENTE">
+              <MeusPedidosPage />
+            </RotaProtegida>
+          } />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
