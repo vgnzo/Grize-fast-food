@@ -27,7 +27,7 @@ export default function DelivBot({ onAbertoChange }: Props) {
     style.textContent = `@keyframes bounce { 0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; } 40% { transform: scale(1); opacity: 1; } }`;
     document.head.appendChild(style);
 
-   const enviar = async () => {
+  const enviar = async () => {
     if (!input.trim() || carregando) return;
     const texto = input.trim();
     setInput('');
@@ -39,8 +39,8 @@ export default function DelivBot({ onAbertoChange }: Props) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ mensagem: texto, sessionId }),
         });
-        const data = await res.json();
-        setMensagens(prev => [...prev, { role: 'bot', texto: data.output }]);
+        const resposta = await res.text();
+        setMensagens(prev => [...prev, { role: 'bot', texto: resposta }]);
     } catch {
         setMensagens(prev => [...prev, { role: 'bot', texto: 'Desculpe, tive um problema. Tente novamente!' }]);
     } finally {
