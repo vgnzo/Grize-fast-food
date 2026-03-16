@@ -11,6 +11,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -43,10 +44,15 @@ public class ChatService {
             bodyMap.put("sessionId", sessionId);
             String bodyJson = mapper.writeValueAsString(bodyMap);
 
-            HttpClient client = HttpClient.newHttpClient();
+            HttpClient client = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(30))
+                .build();
+
             HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(n8nConfig.getWebhookUrl()))
                 .header("Content-Type", "application/json")
+                .header("Accept", "application/json")
+                .timeout(Duration.ofSeconds(30))
                 .POST(HttpRequest.BodyPublishers.ofString(bodyJson))
                 .build();
 
