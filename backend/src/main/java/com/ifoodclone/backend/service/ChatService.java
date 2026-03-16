@@ -8,6 +8,7 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -38,23 +39,27 @@ public class ChatService {
         body.put("mensagem", mensagemComContexto);
         body.put("sessionId", sessionId);
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpHeaders requestHeaders = new HttpHeaders();
+        requestHeaders.setContentType(MediaType.APPLICATION_JSON);
+        requestHeaders.setAccept(List.of(MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN, MediaType.ALL));
 
-        HttpEntity<Map<String, String>> request = new HttpEntity<>(body, headers);
+        HttpEntity<Map<String, String>> request = new HttpEntity<>(body, requestHeaders);
 
-ResponseEntity<Map> response = restTemplate.postForEntity(n8nConfig.getWebhookUrl(), request, Map.class);
+        ResponseEntity<String> response = restTemplate.postForEntity(n8nConfig.getWebhookUrl(), request, String.class);
 
-System.out.println("N8N Status: " + response.getStatusCode());
-System.out.println("N8N Body: " + response.getBody());
+        System.out.println("N8N Status: " + response.getStatusCode());
+        System.out.println("N8N Body: " + response.getBody());
 
-if (response.getBody() != null) {
-    Object output = response.getBody().get("output");
-    System.out.println("N8N Output: " + output);
-    if (output != null) {
-        return output.toString();
-    }
-}
+        if (response.getBody() != null && !response.getBody().isBlank()) {
+            try {
+                Map<String, Object> json = new com.fasterxml.jackson.databind.ObjectMapper().readValue(response.getBody(), Map.class);
+                Object output = json.get("output");
+                if (output != null) return output.toString();
+            } catch (Exception e) {
+                return response.getBody();
+            }
+        }
+
         return "Desculpe, não consegui processar sua mensagem!";
     }
 }
