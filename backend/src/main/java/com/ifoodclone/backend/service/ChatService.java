@@ -22,16 +22,16 @@ public class ChatService {
     public String enviarMensagem(String mensagem, String sessionId) {
         RestTemplate restTemplate = new RestTemplate();
 
-        // Busca restaurantes ativos do banco e monta contexto
-   String restaurantes = restauranteRepository.findAll().stream()
-    .filter(r -> r.getAtivo())
-    .map(r -> {
-        String produtos = produtoRepository.findByRestauranteIdAndDisponivelTrue(r.getId()).stream()
-            .map(p -> "  • " + p.getNome() + " R$" + p.getPreco())
+        String restaurantes = restauranteRepository.findAll().stream()
+            .filter(r -> r.getAtivo())
+            .map(r -> {
+                String produtos = produtoRepository.findByRestauranteIdAndDisponivelTrue(r.getId()).stream()
+                    .map(p -> "  • " + p.getNome() + " R$" + p.getPreco())
+                    .collect(Collectors.joining("\n"));
+                return "- " + r.getNome() + " (categoria: " + r.getCategoria() + ", endereço: " + r.getEndereco() + ")\n" + (produtos.isEmpty() ? "  Sem produtos disponíveis" : produtos);
+            })
             .collect(Collectors.joining("\n"));
-        return "- " + r.getNome() + " (categoria: " + r.getCategoria() + ", endereço: " + r.getEndereco() + ")\n" + (produtos.isEmpty() ? "  Sem produtos disponíveis" : produtos);
-    })
-    .collect(Collectors.joining("\n"));
+
         String mensagemComContexto = "Restaurantes disponíveis no Grize:\n" + restaurantes + "\n\nPergunta do usuário: " + mensagem;
 
         Map<String, String> body = new HashMap<>();
@@ -43,13 +43,11 @@ public class ChatService {
 
         HttpEntity<Map<String, String>> request = new HttpEntity<>(body, headers);
 
-        ResponseEntity<?> response = restTemplate.postForEntity(n8nConfig.getWebhookUrl(), request, Map.class);
+        ResponseEntity<String> response = restTemplate.postForEntity(n8nConfig.getWebhookUrl(), request, String.class);
 
-     ResponseEntity<String> response = restTemplate.postForEntity(n8nConfig.getWebhookUrl(), request, String.class);
-
-if (response.getBody() != null && !response.getBody().isEmpty()) {
-    return response.getBody();
-}
+        if (response.getBody() != null && !response.getBody().isEmpty()) {
+            return response.getBody();
+        }
 
         return "Desculpe, não consegui processar sua mensagem!";
     }
