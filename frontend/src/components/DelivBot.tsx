@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from 'react';
-import api from '../services/api';
 
 interface Mensagem {
     role: 'user' | 'bot';
@@ -28,21 +27,26 @@ export default function DelivBot({ onAbertoChange }: Props) {
     style.textContent = `@keyframes bounce { 0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; } 40% { transform: scale(1); opacity: 1; } }`;
     document.head.appendChild(style);
 
-    const enviar = async () => {
-        if (!input.trim() || carregando) return;
-        const texto = input.trim();
-        setInput('');
-        setMensagens(prev => [...prev, { role: 'user', texto }]);
-        setCarregando(true);
-        try {
-            const res = await api.post('/api/chat/mensagem', { mensagem: texto, sessionId });
-            setMensagens(prev => [...prev, { role: 'bot', texto: res.data.resposta }]);
-        } catch {
-            setMensagens(prev => [...prev, { role: 'bot', texto: 'Desculpe, tive um problema. Tente novamente!' }]);
-        } finally {
-            setCarregando(false);
-        }
-    };
+   const enviar = async () => {
+    if (!input.trim() || carregando) return;
+    const texto = input.trim();
+    setInput('');
+    setMensagens(prev => [...prev, { role: 'user', texto }]);
+    setCarregando(true);
+    try {
+        const res = await fetch('https://n8n-production-5425.up.railway.app/webhook/0bc73eda-14ae-44c9-89a3-d17ddc8229d4', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mensagem: texto, sessionId }),
+        });
+        const data = await res.json();
+        setMensagens(prev => [...prev, { role: 'bot', texto: data.output }]);
+    } catch {
+        setMensagens(prev => [...prev, { role: 'bot', texto: 'Desculpe, tive um problema. Tente novamente!' }]);
+    } finally {
+        setCarregando(false);
+    }
+};
 
     return (
         <>
