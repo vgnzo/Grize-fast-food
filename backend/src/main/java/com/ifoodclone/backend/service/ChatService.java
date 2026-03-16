@@ -45,10 +45,11 @@ public class ChatService {
 
         ResponseEntity<?> response = restTemplate.postForEntity(n8nConfig.getWebhookUrl(), request, Map.class);
 
-        if (response.getBody() != null) {
-            Map<?, ?> responseBody = (Map<?, ?>) response.getBody();
-            return responseBody.get("output").toString();
-        }
+     ResponseEntity<String> response = restTemplate.postForEntity(n8nConfig.getWebhookUrl(), request, String.class);
+
+if (response.getBody() != null && !response.getBody().isEmpty()) {
+    return response.getBody();
+}
 
         return "Desculpe, não consegui processar sua mensagem!";
     }
