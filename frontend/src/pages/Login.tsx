@@ -1,30 +1,31 @@
 import { useState } from 'react';
 import api from '../services/api';
 import { jwtDecode } from 'jwt-decode';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [erro, setErro] = useState('');
   const [loading, setLoading] = useState(false);
-
+    const { login } = useAuth();
 
  const handleLogin = async () => {
   setLoading(true);
   try {
     const response = await api.post('/api/auth/login', { email, senha });
     const token = response.data.token;
-    localStorage.setItem('token', token);
+    
+    login(token); // ← salva o token E atualiza o contexto
 
     const decoded = jwtDecode<{ sub: string; roles?: string[] }>(token);
     const role = decoded.roles?.[0];
 
-if (role === 'ROLE_RESTAURANTE') {
-  window.location.href = '/painel';
-} else {
-  window.location.href = '/';
-}
-
+    if (role === 'ROLE_RESTAURANTE') {
+      window.location.href = '/painel';
+    } else {
+      window.location.href = '/';
+    }
   } catch {
     setErro('Email ou senha incorretos!');
   } finally {

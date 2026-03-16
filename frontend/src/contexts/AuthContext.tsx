@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useCallback } from 'react';
 import { jwtDecode } from 'jwt-decode';
 
 interface TokenPayload {
@@ -11,40 +11,21 @@ interface AuthContextType {
   email: string | null;
   role: string | null;
   usuarioId: number | null;
+  login: (token: string) => void;
   logout: () => void;
 }
 
-function getEmailFromToken(): string | null {
-  const token = localStorage.getItem('token');
-  if (!token) return null;
+function decodeToken(token: string | null) {
+  if (!token) return { email: null, role: null, usuarioId: null };
   try {
     const decoded = jwtDecode<TokenPayload>(token);
-    return decoded.sub;
+    return {
+      email: decoded.sub,
+      role: decoded.roles?.[0] ?? null,
+      usuarioId: decoded.usuarioId ?? null,
+    };
   } catch {
-    return null;
-  }
-}
-
-
-  function getUsuarioIdFromToken(): number | null {
-  const token = localStorage.getItem('token');
-  if (!token) return null;
-  try {
-    const decoded = jwtDecode<TokenPayload>(token);
-    return decoded.usuarioId ?? null;
-  } catch {
-    return null;
-  }
-}
-
-function getRoleFromToken(): string | null {
-  const token = localStorage.getItem('token');
-  if (!token) return null;
-  try {
-    const decoded = jwtDecode<TokenPayload>(token);
-    return decoded.roles?.[0] ?? null;
-  } catch {
-    return null;
+    return { email: null, role: null, usuarioId: null };
   }
 }
 
@@ -52,21 +33,28 @@ const AuthContext = createContext<AuthContextType>({
   email: null,
   role: null,
   usuarioId: null,
+  login: () => {},
   logout: () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [email] = useState<string | null>(getEmailFromToken);
-  const [role] = useState<string | null>(getRoleFromToken);
-  const [usuarioId] = useState<number | null>(getUsuarioIdFromToken);
+  const [authState, setAuthState] = useState(() =>
+    decodeToken(localStorage.getItem('token'))
+  );
 
-  const logout = () => {
+  const login = useCallback((token: string) => {
+    localStorage.setItem('token', token);
+    setAuthState(decodeToken(token));
+  }, []);
+
+  const logout = useCallback(() => {
     localStorage.removeItem('token');
+    setAuthState({ email: null, role: null, usuarioId: null });
     window.location.href = '/login';
-  };
+  }, []);
 
   return (
-  <AuthContext.Provider value={{ email, role, usuarioId, logout }}>
+    <AuthContext.Provider value={{ ...authState, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
