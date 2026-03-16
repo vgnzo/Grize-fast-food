@@ -6,13 +6,16 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import com.ifoodclone.backend.repository.ProdutoRepository;
+import java.util.Map;
+
 
 @RestController
 @RequestMapping("/api/restaurantes")
 @RequiredArgsConstructor
 public class RestauranteController {
     private final RestauranteService restauranteService;
-
+    private final ProdutoRepository produtoRepository;
     @PostMapping
     public ResponseEntity<RestauranteDTO> criar(@RequestBody RestauranteDTO dto) {
         return ResponseEntity.ok(restauranteService.criar(dto));
@@ -53,6 +56,22 @@ public ResponseEntity<List<RestauranteDTO>> minhasLojas() {
     String email = org.springframework.security.core.context.SecurityContextHolder
         .getContext().getAuthentication().getName();
     return ResponseEntity.ok(restauranteService.listarPorEmail(email));
+}
+
+@GetMapping("/completo")
+public ResponseEntity<List<Map<String, Object>>> listarComProdutos() {
+    List<RestauranteDTO> restaurantes = restauranteService.listarAtivos();
+    List<Map<String, Object>> resultado = restaurantes.stream().map(r -> {
+        Map<String, Object> map = new java.util.HashMap<>();
+        map.put("id", r.getId());
+        map.put("nome", r.getNome());
+        map.put("categoria", r.getCategoria());
+        map.put("endereco", r.getEndereco());
+        map.put("descricao", r.getDescricao());
+        map.put("produtos", produtoRepository.findByRestauranteIdAndDisponivelTrue(r.getId()));
+        return map;
+    }).collect(java.util.stream.Collectors.toList());
+    return ResponseEntity.ok(resultado);
 }
 
 }
