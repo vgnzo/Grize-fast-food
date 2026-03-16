@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Client } from '@stomp/stompjs';
+import SockJS from 'sockjs-client';
 
 interface Notificacao {
     pedidoId: number;
@@ -14,7 +15,8 @@ export function useWebSocket(usuarioId: number | null, onNotificacao: (n: Notifi
         if (!usuarioId) return;
 
         const client = new Client({
-brokerURL: 'wss://grize-fast-food-production.up.railway.app/ws',           onConnect: () => {
+            webSocketFactory: () => new SockJS('https://grize-fast-food-production.up.railway.app/ws'), // ← troca brokerURL por isso
+            onConnect: () => {
                 client.subscribe(`/topic/pedidos/${usuarioId}`, (message) => {
                     const notificacao: Notificacao = JSON.parse(message.body);
                     onNotificacao(notificacao);
