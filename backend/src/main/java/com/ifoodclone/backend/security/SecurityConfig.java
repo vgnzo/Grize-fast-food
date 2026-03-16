@@ -45,7 +45,7 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
 config.addAllowedOriginPattern("*");
 config.addAllowedMethod("*");
 config.addAllowedHeader("*");
-config.setAllowCredentials(false);
+config.setAllowCredentials(true);
             return config;
         }))
         .csrf(csrf -> csrf.disable())

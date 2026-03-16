@@ -17,12 +17,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         config.setApplicationDestinationPrefixes("/app");
     }
 
-    @Override
-    public void registerStompEndpoints(StompEndpointRegistry registry) {
-        //endpoint que o front vai conectar
-
-   registry.addEndpoint("/ws")
-        .setAllowedOriginPatterns("*")
-         .withSockJS();
-    }
+@Override
+public void registerStompEndpoints(StompEndpointRegistry registry) {
+    registry.addEndpoint("/ws")
+        .setAllowedOriginPatterns("https://grize-fast-food.vercel.app")
+        .withSockJS();
+}
 }
