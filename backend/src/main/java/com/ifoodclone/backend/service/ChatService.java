@@ -45,8 +45,12 @@ public class ChatService {
 
 ResponseEntity<Map> response = restTemplate.postForEntity(n8nConfig.getWebhookUrl(), request, Map.class);
 
+System.out.println("N8N Status: " + response.getStatusCode());
+System.out.println("N8N Body: " + response.getBody());
+
 if (response.getBody() != null) {
     Object output = response.getBody().get("output");
+    System.out.println("N8N Output: " + output);
     if (output != null) {
         return output.toString();
     }
