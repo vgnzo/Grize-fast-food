@@ -55,6 +55,7 @@ config.setAllowCredentials(true);
     .requestMatchers("/api/restaurantes/categoria/**").permitAll()
 .requestMatchers("/api/restaurantes").permitAll()
     .requestMatchers("/ws/**").permitAll()
+    .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/restaurantes/**").permitAll()
     .requestMatchers("/api/restaurantes/completo").permitAll()
     
     .requestMatchers("/api/restaurantes/*/media").permitAll()

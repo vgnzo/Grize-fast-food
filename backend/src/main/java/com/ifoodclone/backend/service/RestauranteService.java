@@ -102,4 +102,10 @@ public List<RestauranteDTO> listarPorEmail(String email) {
         .map(this::toDTO)
         .collect(Collectors.toList());
 }
+
+public void deletar(Long id) {
+    Restaurante restaurante = restauranteRepository.findById(id)
+        .orElseThrow(() -> new RuntimeException("Restaurante não encontrado!"));
+    restauranteRepository.delete(restaurante);
+}
         }

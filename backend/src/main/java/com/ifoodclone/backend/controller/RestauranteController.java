@@ -82,4 +82,10 @@ public ResponseEntity<List<Map<String, Object>>> listarComProdutos() {
     }).collect(java.util.stream.Collectors.toList());
     return ResponseEntity.ok(resultado);
 }
+@DeleteMapping("/{id}")
+public ResponseEntity<Void> deletar(@PathVariable Long id) {
+    restauranteService.deletar(id);
+    return ResponseEntity.noContent().build();
+}
+
 }
