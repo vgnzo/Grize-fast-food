@@ -62,8 +62,7 @@ export default function LojaPanel({ onLojaAtiva }: Props) {
       setSucesso('');
     }
   };
-
-  // Lista de lojas
+// Lista de lojas
   if (lojaSelecionada === null) {
     return (
       <div>
@@ -111,10 +110,25 @@ export default function LojaPanel({ onLojaAtiva }: Props) {
                   {!loja.imagemUrl && <span style={{ fontSize: '2rem' }}>🍽️</span>}
                 </div>
                 <div style={{ padding: '1rem' }}>
-                  <p style={{ fontWeight: '700', margin: '0 0 0.25rem 0' }}>{loja.nome}</p>
-                  <span style={{ background: 'rgba(139, 92, 246, 0.15)', color: '#8b5cf6', borderRadius: '6px', padding: '0.2rem 0.6rem', fontSize: '0.75rem', fontWeight: '600' }}>
-                    {loja.categoria}
-                  </span>
+                  <p style={{ fontWeight: '700', margin: '0 0 0.5rem 0' }}>{loja.nome}</p>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ background: 'rgba(139, 92, 246, 0.15)', color: '#8b5cf6', borderRadius: '6px', padding: '0.2rem 0.6rem', fontSize: '0.75rem', fontWeight: '600' }}>
+                      {loja.categoria}
+                    </span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (confirm('Tem certeza que quer deletar essa loja?')) {
+                          api.delete(`/api/restaurantes/${loja.id}`)
+                            .then(() => setLojas(prev => prev.filter(l => l.id !== loja.id)))
+                            .catch(() => alert('Erro ao deletar!'));
+                        }
+                      }}
+                      style={{ background: 'rgba(248, 113, 113, 0.1)', border: '1px solid rgba(248, 113, 113, 0.2)', color: '#f87171', borderRadius: '6px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer' }}
+                    >
+                      🗑️
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -220,11 +234,10 @@ export default function LojaPanel({ onLojaAtiva }: Props) {
         <ProdutosPanel lojaAtivaId={lojaId} />
       )}
 
-
       {/* Aba Pedidos */}
-{abaAtiva === 'pedidos' && (
-  <PedidosPanel lojaAtivaId={lojaId} />
-)}
+      {abaAtiva === 'pedidos' && (
+        <PedidosPanel lojaAtivaId={lojaId} />
+      )}
     </div>
   );
 }
