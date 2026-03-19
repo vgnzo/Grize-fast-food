@@ -21,7 +21,6 @@ public class PedidoService {
     private final ItemPedidoRepository itemPedidoRepository;
     private final NotificacaoService notificacaoService;
 
-    // Agora recebe o email do usuário logado pelo JWT (mais seguro)
     public PedidoDTO criar(PedidoDTO dto, String emailUsuario) {
         Usuario usuario = usuarioRepository.findByEmail(emailUsuario)
             .orElseThrow(() -> new RuntimeException("Usuário não encontrado!"));
@@ -35,14 +34,12 @@ public class PedidoService {
         pedido.setEnderecoEntrega(dto.getEnderecoEntrega());
         pedido.setStatus(Pedido.Status.PENDENTE);
 
-        // Calcula o número do pedido do dia para esse restaurante
         LocalDate hoje = LocalDate.now();
-            long numeroDia = pedidoRepository.countByRestauranteIdAndData(restaurante.getId(), hoje) + 1;
+        long numeroDia = pedidoRepository.countByRestauranteIdAndData(restaurante.getId(), hoje) + 1;
         pedido.setNumeroDia((int) numeroDia);
 
-        // Gera código de confirmação de 4 dígitos
-            String codigo = String.format("%04d", new java.util.Random().nextInt(10000));
-            pedido.setCodigoConfirmacao(codigo);
+        String codigo = String.format("%04d", new java.util.Random().nextInt(10000));
+        pedido.setCodigoConfirmacao(codigo);
 
         pedido.setTotal(BigDecimal.ZERO);
         BigDecimal total = BigDecimal.ZERO;
@@ -52,14 +49,11 @@ public class PedidoService {
             Produto produto = produtoRepository.findById(itemDTO.getProdutoId())
                 .orElseThrow(() -> new RuntimeException("Produto não encontrado!"));
 
-            // Verifica se tem estoque suficiente
             if (produto.getQuantidade() < itemDTO.getQuantidade()) {
                 throw new RuntimeException("Estoque insuficiente para: " + produto.getNome());
             }
 
-            // Desconta o estoque do produto
             produto.setQuantidade(produto.getQuantidade() - itemDTO.getQuantidade());
-            // Se zerar o estoque, marca como indisponível automaticamente
             if (produto.getQuantidade() == 0) {
                 produto.setDisponivel(false);
             }
@@ -86,7 +80,15 @@ public class PedidoService {
             .collect(Collectors.toList());
     }
 
-    // Novo método para o painel do restaurante ver os pedidos recebidos
+    public List<PedidoDTO> listarPorEmail(String email) {
+        Usuario usuario = usuarioRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("Usuário não encontrado!"));
+        return pedidoRepository.findByUsuarioId(usuario.getId())
+            .stream()
+            .map(this::toDTO)
+            .collect(Collectors.toList());
+    }
+
     public List<PedidoDTO> listarPorRestaurante(Long restauranteId) {
         return pedidoRepository.findByRestauranteIdOrderByCriadoEmDesc(restauranteId)
             .stream()
@@ -94,21 +96,40 @@ public class PedidoService {
             .collect(Collectors.toList());
     }
 
- public PedidoDTO atualizarStatus(Long id, Pedido.Status status) {
-    Pedido pedido = pedidoRepository.findById(id)
-        .orElseThrow(() -> new RuntimeException("Pedido não encontrado!"));
-    pedido.setStatus(status);
-    Pedido salvo = pedidoRepository.save(pedido);
+    public PedidoDTO atualizarStatus(Long id, Pedido.Status status) {
+        Pedido pedido = pedidoRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Pedido não encontrado!"));
+        pedido.setStatus(status);
+        Pedido salvo = pedidoRepository.save(pedido);
 
-    // Notifica o cliente via WebSocket
-    notificacaoService.notificarStatusPedido(
-        salvo.getUsuario().getId(),
-        salvo.getId(),
-        status.name()
-    );
+        notificacaoService.notificarStatusPedido(
+            salvo.getUsuario().getId(),
+            salvo.getId(),
+            status.name()
+        );
 
-    return toDTO(salvo);
-}
+        return toDTO(salvo);
+    }
+
+    public PedidoDTO confirmarEntrega(Long id, String codigo) {
+        Pedido pedido = pedidoRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Pedido não encontrado!"));
+
+        if (!codigo.equals(pedido.getCodigoConfirmacao())) {
+            throw new RuntimeException("Código inválido!");
+        }
+
+        pedido.setStatus(Pedido.Status.ENTREGUE);
+        Pedido salvo = pedidoRepository.save(pedido);
+
+        notificacaoService.notificarStatusPedido(
+            salvo.getUsuario().getId(),
+            salvo.getId(),
+            "ENTREGUE"
+        );
+
+        return toDTO(salvo);
+    }
 
     private PedidoDTO toDTO(Pedido pedido) {
         PedidoDTO dto = new PedidoDTO();
@@ -123,35 +144,15 @@ public class PedidoService {
         dto.setNumeroDia(pedido.getNumeroDia());
 
         if (pedido.getItens() != null) {
-    dto.setItens(pedido.getItens().stream().map(item -> {
-        ItemPedidoDTO itemDTO = new ItemPedidoDTO();
-        itemDTO.setProdutoId(item.getProduto().getId());
-        itemDTO.setQuantidade(item.getQuantidade());
-        itemDTO.setNomeProduto(item.getProduto().getNome());
-        itemDTO.setPrecoUnitario(item.getPrecoUnitario());
-        return itemDTO;
-    }).collect(Collectors.toList()));
-}
+            dto.setItens(pedido.getItens().stream().map(item -> {
+                ItemPedidoDTO itemDTO = new ItemPedidoDTO();
+                itemDTO.setProdutoId(item.getProduto().getId());
+                itemDTO.setQuantidade(item.getQuantidade());
+                itemDTO.setNomeProduto(item.getProduto().getNome());
+                itemDTO.setPrecoUnitario(item.getPrecoUnitario());
+                return itemDTO;
+            }).collect(Collectors.toList()));
+        }
         return dto;
     }
-
-    public PedidoDTO confirmarEntrega(Long id, String codigo) {
-    Pedido pedido = pedidoRepository.findById(id)
-        .orElseThrow(() -> new RuntimeException("Pedido não encontrado!"));
-    
-    if (!codigo.equals(pedido.getCodigoConfirmacao())) {
-        throw new RuntimeException("Código inválido!");
-    }
-
-    pedido.setStatus(Pedido.Status.ENTREGUE);
-    Pedido salvo = pedidoRepository.save(pedido);
-
-    notificacaoService.notificarStatusPedido(
-        salvo.getUsuario().getId(),
-        salvo.getId(),
-        "ENTREGUE"
-    );
-
-    return toDTO(salvo);
-}
 }

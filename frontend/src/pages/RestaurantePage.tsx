@@ -65,6 +65,7 @@ export default function RestaurantePage() {
   const [enviandoAvaliacao, setEnviandoAvaliacao] = useState(false);
   const [avaliacaoFeita, setAvaliacaoFeita] = useState(false);
   const [minhaNotaAtual, setMinhaNotaAtual] = useState(0);
+  const [temPedido, setTemPedido] = useState(false);
 
   // Chat geral
   const [chatGeralAberto, setChatGeralAberto] = useState(false);
@@ -81,6 +82,10 @@ export default function RestaurantePage() {
     api.get('/api/usuarios/perfil').then((res) => { if (res.data?.endereco) setEnderecoEntrega(res.data.endereco); }).catch(() => {});
     api.get(`/api/restaurantes/${id}/media`).then((res) => setMediaRestaurante(res.data || 0)).catch(() => {});
     api.get(`/api/restaurantes/${id}/minha-nota`).then((res) => { setMinhaNotaAtual(res.data || 0); setNotaSelecionada(res.data || 0); }).catch(() => {});
+    api.get('/api/pedidos/meus-pedidos')
+      .then((res) => {
+const temPedidoNesseRestaurante = res.data.some((p: { restauranteId: number }) => p.restauranteId === Number(id));        setTemPedido(temPedidoNesseRestaurante);
+      }).catch(() => {});
   }, [id]);
 
   useEffect(() => { bottomRefPedido.current?.scrollIntoView({ behavior: 'smooth' }); }, [mensagensPedido]);
@@ -135,6 +140,7 @@ export default function RestaurantePage() {
       setPedidoId(resposta.data.id);
       setPedidoFeito(true);
       setCarrinho([]);
+      setTemPedido(true);
     } catch {
       setErroPedido('Erro ao finalizar pedido. Tente novamente!');
     } finally {
@@ -152,8 +158,7 @@ export default function RestaurantePage() {
       api.get(`/api/restaurantes/${id}/media`).then((res) => setMediaRestaurante(res.data || 0)).catch(() => {});
       setTimeout(() => { setModalAvaliacaoAberto(false); setAvaliacaoFeita(false); }, 2000);
     } catch {
-            //pra n dar err nas {}
-
+      //pra n dar err nas {}
     } finally { setEnviandoAvaliacao(false); }
   };
 
@@ -165,8 +170,7 @@ export default function RestaurantePage() {
       setMensagensPedido(prev => [...prev, res.data]);
       setInputMensagemPedido('');
     } catch {
-            //pra n dar err nas {}
-
+      //pra n dar err nas {}
     } finally { setEnviandoMsgPedido(false); }
   };
 
@@ -208,8 +212,6 @@ export default function RestaurantePage() {
               <>
                 <h2 style={{ fontSize: '1.1rem', fontWeight: '800', margin: '0 0 0.25rem 0' }}>Avaliar {restaurante.nome}</h2>
                 <p style={{ color: '#52525b', fontSize: '0.85rem', margin: '0 0 1.5rem 0' }}>Como foi sua experiência?</p>
-                
-                {/* Estrelas */}
                 <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
                   {[1, 2, 3, 4, 5].map((i) => (
                     <span key={i}
@@ -220,7 +222,6 @@ export default function RestaurantePage() {
                     >★</span>
                   ))}
                 </div>
-
                 <textarea
                   value={comentario}
                   onChange={(e) => setComentario(e.target.value)}
@@ -230,7 +231,6 @@ export default function RestaurantePage() {
                   onFocus={(e) => e.target.style.borderColor = '#8b5cf6'}
                   onBlur={(e) => e.target.style.borderColor = '#27272a'}
                 />
-
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                   <button onClick={() => setModalAvaliacaoAberto(false)}
                     style={{ flex: 1, background: 'transparent', border: '1px solid #27272a', color: '#52525b', borderRadius: '10px', padding: '0.75rem', fontSize: '0.875rem', fontWeight: '600', cursor: 'pointer' }}>
@@ -391,10 +391,12 @@ export default function RestaurantePage() {
                   {[1,2,3,4,5].map(i => <span key={i} style={{ fontSize: '0.85rem', color: i <= Math.round(mediaRestaurante) ? '#fbbf24' : 'rgba(255,255,255,0.3)' }}>★</span>)}
                   {mediaRestaurante > 0 && <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', marginLeft: '2px' }}>{mediaRestaurante.toFixed(1)}</span>}
                 </div>
-                <button onClick={() => setModalAvaliacaoAberto(true)}
-                  style={{ background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.3)', color: '#fbbf24', borderRadius: '6px', padding: '0.2rem 0.6rem', fontSize: '0.75rem', fontWeight: '600', cursor: 'pointer' }}>
-                  {minhaNotaAtual > 0 ? '✏️ Editar nota' : '⭐ Avaliar'}
-                </button>
+                {temPedido && (
+                  <button onClick={() => setModalAvaliacaoAberto(true)}
+                    style={{ background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.3)', color: '#fbbf24', borderRadius: '6px', padding: '0.2rem 0.6rem', fontSize: '0.75rem', fontWeight: '600', cursor: 'pointer' }}>
+                    {minhaNotaAtual > 0 ? '✏️ Editar nota' : '⭐ Avaliar'}
+                  </button>
+                )}
               </div>
             </div>
           </div>
