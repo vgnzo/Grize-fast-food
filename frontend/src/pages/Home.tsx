@@ -189,6 +189,16 @@ export default function Home() {
 
             {notificacao && <ToastNotificacao mensagem={notificacao} onClose={() => setNotificacao(null)} />}
             <DelivBot />
+
+
+                {/* Rodapé */}
+<div style={{ textAlign: 'center', padding: '2rem', borderTop: '1px solid #1c1c20', marginTop: '2rem' }}>
+  <p style={{ color: '#27272a', fontSize: '0.75rem' }}>
+    Feito por <span style={{ color: '#52525b', fontWeight: '600' }}>Vinicius Galdino</span>
+  </p>
+</div>
+
+
             <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
         </div>
     );

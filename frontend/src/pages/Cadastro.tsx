@@ -13,6 +13,7 @@ export default function Cadastro() {
   const [endereco, setEndereco] = useState('');
   const [erro, setErro] = useState('');
   const [loading, setLoading] = useState(false);
+  const [mostrarSenha, setMostrarSenha] = useState(false);
   const [buscandoCep, setBuscandoCep] = useState(false);
   const navigate = useNavigate();
 
@@ -157,14 +158,20 @@ export default function Cadastro() {
         </div>
 
         {/* Senha */}
-        <div style={{ marginBottom: '0.75rem' }}>
-          <input
-            type="password" value={senha} onChange={(e) => setSenha(e.target.value)}
-            placeholder="Senha" style={inputStyle}
-            onFocus={(e) => e.target.style.borderColor = '#8b5cf6'}
-            onBlur={(e) => e.target.style.borderColor = '#27272a'}
-          />
-        </div>
+<div style={{ marginBottom: '0.75rem', position: 'relative' }}>
+  <input
+    type={mostrarSenha ? 'text' : 'password'}
+    value={senha} onChange={(e) => setSenha(e.target.value)}
+    placeholder="Senha"
+    style={{ ...inputStyle, paddingRight: '3rem' }}
+    onFocus={(e) => e.target.style.borderColor = '#8b5cf6'}
+    onBlur={(e) => e.target.style.borderColor = '#27272a'}
+  />
+  <button onClick={() => setMostrarSenha(!mostrarSenha)}
+    style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#52525b', fontSize: '1rem', padding: 0 }}>
+    {mostrarSenha ? '🙈' : '👁️'}
+  </button>
+</div>
 {/* Telefone com máscara */}
 <div style={{ marginBottom: '0.75rem' }}>
   <IMaskInput
@@ -239,6 +246,10 @@ export default function Cadastro() {
         </p>
 
       </div>
+
+      <p style={{ textAlign: 'center', color: '#27272a', fontSize: '0.75rem', marginTop: '1.5rem' }}>
+  Feito por <span style={{ color: '#52525b', fontWeight: '600' }}>Vinicius Galdino</span>
+</p>
 
       <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
     </div>
