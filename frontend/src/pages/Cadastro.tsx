@@ -245,11 +245,11 @@ export default function Cadastro() {
           </a>
         </p>
 
-      </div>
+        <p style={{ textAlign: 'center', color: '#27272a', fontSize: '0.75rem', marginTop: '1rem' }}>
+          Feito por <span style={{ color: '#52525b', fontWeight: '600' }}>Vinicius Galdino</span>
+        </p>
 
-      <p style={{ textAlign: 'center', color: '#27272a', fontSize: '0.75rem', marginTop: '1.5rem' }}>
-  Feito por <span style={{ color: '#52525b', fontWeight: '600' }}>Vinicius Galdino</span>
-</p>
+      </div>  {/* ← fecha o div central */}
 
       <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
     </div>
